@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  /* ── CONFIG — edit these ── */
+  /* ── CONFIG ── */
   var WEBHOOK_URL = 'https://n8n.srv1178999.hstgr.cloud/webhook/680058b4-c36b-491f-b676-ebaeddbf7026/chat';
   var BOT_NAME    = 'Ice-boy Support';
   var BOT_SUB     = 'AI Assistant \u2022 33+ Years of Excellence';
@@ -12,16 +12,12 @@
   var BTN_BOTTOM  = '20px';
   var BTN_RIGHT   = '20px';
 
-  /* ── Inject CSS ── */
+  /* ── CSS ── */
   var style = document.createElement('style');
   style.textContent = [
     '#ib-wrap{position:fixed;bottom:' + BTN_BOTTOM + ';right:' + BTN_RIGHT + ';display:flex;flex-direction:column;align-items:flex-end;gap:12px;z-index:2147483647;font-family:\'Segoe UI\',-apple-system,BlinkMacSystemFont,Roboto,sans-serif}',
 
-    /* chat window */
-    '#ib-win{display:none;width:370px;height:520px;border-radius:16px;background:#fff;',
-    'box-shadow:0 20px 60px rgba(0,0,0,.18),0 4px 16px rgba(37,99,235,.12);',
-    'flex-direction:column;overflow:hidden;',
-    'animation:ibSlide .22s cubic-bezier(.34,1.36,.64,1)}',
+    '#ib-win{display:none;width:370px;height:520px;border-radius:16px;background:#fff;box-shadow:0 20px 60px rgba(0,0,0,.18),0 4px 16px rgba(37,99,235,.12);flex-direction:column;overflow:hidden;animation:ibSlide .22s cubic-bezier(.34,1.36,.64,1)}',
     '#ib-win.open{display:flex}',
     '@keyframes ibSlide{from{opacity:0;transform:scale(.92) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}',
 
@@ -31,8 +27,12 @@
     '#ib-av{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center}',
     '#ib-name{color:#fff;font-size:1rem;font-weight:600}',
     '#ib-sub{color:rgba(255,255,255,.72);font-size:.72rem;margin-top:1px}',
-    '#ib-x{background:transparent;border:none;cursor:pointer;color:rgba(255,255,255,.85);width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;transition:background .15s}',
-    '#ib-x:hover{background:rgba(255,255,255,.15);color:#fff}',
+
+    /* header action buttons (refresh + close) */
+    '#ib-hdr-r{display:flex;align-items:center;gap:4px}',
+    '.ib-hdr-btn{background:transparent;border:none;cursor:pointer;color:rgba(255,255,255,.85);width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;transition:background .15s}',
+    '.ib-hdr-btn:hover{background:rgba(255,255,255,.18);color:#fff}',
+    '.ib-hdr-btn svg{pointer-events:none}',
 
     /* body */
     '#ib-body{flex:1;overflow-y:auto;padding:1.1rem;background:#f9fafb;display:flex;flex-direction:column;scroll-behavior:smooth}',
@@ -68,18 +68,17 @@
     '#ib-send:hover{background:#1d4ed8}#ib-send:active{transform:scale(.92)}#ib-send:disabled{background:#93c5fd;cursor:not-allowed}',
 
     /* toggle button */
-    '#ib-btn{width:60px;height:60px;border-radius:50%;background:' + BTN_COLOR + ';border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;',
-    'box-shadow:0 8px 28px rgba(37,99,235,.5);transition:background .15s,transform .15s;flex-shrink:0}',
+    '#ib-btn{width:60px;height:60px;border-radius:50%;background:' + BTN_COLOR + ';border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 28px rgba(37,99,235,.5);transition:background .15s,transform .15s;flex-shrink:0}',
     '#ib-btn:hover{background:#1d4ed8;transform:scale(1.06)}#ib-btn:active{transform:scale(.97)}',
     '#ib-ico-x{display:none}',
 
-    /* mobile */
+    /* mobile full screen */
     '@media(max-width:480px){#ib-win{width:100vw;height:100dvh;border-radius:0;position:fixed;bottom:0;right:0}}'
   ].join('');
   document.head.appendChild(style);
 
   /* ── SVG helpers ── */
-  function flake(size) {
+  function flakeSVG(size) {
     return '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">' +
       '<line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/>' +
       '<line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/><line x1="19.07" y1="4.93" x2="4.93" y2="19.07"/>' +
@@ -89,26 +88,34 @@
       '<line x1="22" y1="12" x2="19" y2="9"/><line x1="22" y1="12" x2="19" y2="15"/></svg>';
   }
 
-  function sendSVG() {
-    return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+  function refreshSVG() {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+      '<polyline points="23 4 23 10 17 10"/>' +
+      '<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
   }
 
   function closeSVG(size, color) {
     return '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
   }
 
+  function sendSVG() {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+  }
+
   /* ── Build HTML ── */
   var wrap = document.createElement('div');
   wrap.id = 'ib-wrap';
   wrap.innerHTML =
-    /* chat window */
     '<div id="ib-win" role="dialog" aria-label="Ice-boy Support Chat">' +
       '<div id="ib-hdr">' +
         '<div id="ib-hdr-l">' +
-          '<div id="ib-av">' + flake(18) + '</div>' +
+          '<div id="ib-av">' + flakeSVG(18) + '</div>' +
           '<div><div id="ib-name">' + BOT_NAME + '</div><div id="ib-sub">' + BOT_SUB + '</div></div>' +
         '</div>' +
-        '<button id="ib-x" aria-label="Close">' + closeSVG(18, 'currentColor') + '</button>' +
+        '<div id="ib-hdr-r">' +
+          '<button class="ib-hdr-btn" id="ib-refresh" title="Clear chat" aria-label="Clear chat">' + refreshSVG() + '</button>' +
+          '<button class="ib-hdr-btn" id="ib-x" title="Close" aria-label="Close">' + closeSVG(18, 'currentColor') + '</button>' +
+        '</div>' +
       '</div>' +
       '<div id="ib-body"></div>' +
       '<div id="ib-ftr">' +
@@ -119,9 +126,9 @@
         '</div>' +
       '</div>' +
     '</div>' +
-    /* toggle button */
+    /* floating toggle */
     '<button id="ib-btn" aria-label="Open chat">' +
-      '<span id="ib-ico-flake">' + flake(26) + '</span>' +
+      '<span id="ib-ico-flake">' + flakeSVG(26) + '</span>' +
       '<span id="ib-ico-x">' + closeSVG(24, 'white') + '</span>' +
     '</button>';
 
@@ -139,19 +146,21 @@
   })();
 
   /* ── DOM refs ── */
-  var win      = document.getElementById('ib-win');
-  var body     = document.getElementById('ib-body');
-  var inp      = document.getElementById('ib-inp');
-  var sendBtn  = document.getElementById('ib-send');
-  var closeBtn = document.getElementById('ib-x');
-  var toggleBtn= document.getElementById('ib-btn');
-  var icoFlake = document.getElementById('ib-ico-flake');
-  var icoX     = document.getElementById('ib-ico-x');
+  var win        = document.getElementById('ib-win');
+  var body       = document.getElementById('ib-body');
+  var inp        = document.getElementById('ib-inp');
+  var sendBtn    = document.getElementById('ib-send');
+  var closeBtn   = document.getElementById('ib-x');
+  var refreshBtn = document.getElementById('ib-refresh');
+  var toggleBtn  = document.getElementById('ib-btn');
+  var icoFlake   = document.getElementById('ib-ico-flake');
+  var icoX       = document.getElementById('ib-ico-x');
 
   /* ── Events ── */
-  toggleBtn.addEventListener('click', function () { isOpen ? close() : open(); });
-  closeBtn.addEventListener('click', close);
-  sendBtn.addEventListener('click', send);
+  toggleBtn.addEventListener('click',  function () { isOpen ? close() : open(); });
+  closeBtn.addEventListener('click',   close);
+  refreshBtn.addEventListener('click', clearChat);
+  sendBtn.addEventListener('click',    send);
   inp.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
   });
@@ -160,7 +169,7 @@
     this.style.height = Math.min(this.scrollHeight, 100) + 'px';
   });
 
-  /* ── Open / Close ── */
+  /* ── Open / Close / Clear ── */
   function open() {
     isOpen = true;
     win.classList.add('open');
@@ -168,11 +177,7 @@
     icoX.style.display     = 'inline';
     inp.focus();
     scrollBottom();
-    if (!welcomed) {
-      welcomed = true;
-      setTimeout(function () { addMsg('bot', WELCOME_1); }, 300);
-      setTimeout(function () { addMsg('bot', WELCOME_2); }, 900);
-    }
+    if (!welcomed) { showWelcome(); }
   }
 
   function close() {
@@ -180,6 +185,23 @@
     win.classList.remove('open');
     icoFlake.style.display = 'inline';
     icoX.style.display     = 'none';
+  }
+
+  function clearChat() {
+    /* Clear messages */
+    body.innerHTML = '';
+    /* Reset session so n8n starts fresh */
+    sessionId = 'sess_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    try { localStorage.setItem('iceboy_s', sessionId); } catch(e) {}
+    /* Replay welcome */
+    welcomed = false;
+    showWelcome();
+  }
+
+  function showWelcome() {
+    welcomed = true;
+    setTimeout(function () { addMsg('bot', WELCOME_1); }, 300);
+    setTimeout(function () { addMsg('bot', WELCOME_2); }, 900);
   }
 
   /* ── Send ── */
@@ -215,13 +237,13 @@
     }
   }
 
-  /* ── Message helpers ── */
+  /* ── Helpers ── */
   function addMsg(role, text) {
     var row = document.createElement('div');
     row.className = 'ib-row ' + (role === 'bot' ? 'ib-bot' : 'ib-usr');
     var content = role === 'bot' ? fmtBot(text) : esc(text);
     row.innerHTML = role === 'bot'
-      ? '<div class="ib-mav">' + flake(12) + '</div><div class="ib-col"><div class="ib-bub">' + content + '</div></div>'
+      ? '<div class="ib-mav">' + flakeSVG(12) + '</div><div class="ib-col"><div class="ib-bub">' + content + '</div></div>'
       : '<div class="ib-col"><div class="ib-bub">' + content + '</div></div>';
     body.appendChild(row);
     scrollBottom();
@@ -230,15 +252,18 @@
   function showTyping() {
     var row = document.createElement('div');
     row.className = 'ib-row ib-bot'; row.id = 'ib-typing';
-    row.innerHTML = '<div class="ib-mav">' + flake(12) + '</div><div class="ib-typ"><div class="ib-dot"></div><div class="ib-dot"></div><div class="ib-dot"></div></div>';
-    body.appendChild(row); scrollBottom();
+    row.innerHTML = '<div class="ib-mav">' + flakeSVG(12) + '</div><div class="ib-typ"><div class="ib-dot"></div><div class="ib-dot"></div><div class="ib-dot"></div></div>';
+    body.appendChild(row);
+    scrollBottom();
   }
 
   function hideTyping() { var el = document.getElementById('ib-typing'); if (el) el.remove(); }
 
   function scrollBottom() { requestAnimationFrame(function () { body.scrollTop = body.scrollHeight; }); }
 
-  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
 
   function fmtBot(text) {
     var links = [];
