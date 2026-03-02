@@ -288,14 +288,14 @@
 	// ── SESSION: Save & Load ─────────────────────────────────────────────────────
 	function saveMessage(role, text) {
 		try {
-			var h = JSON.parse(sessionStorage.getItem(HISTORY_KEY) || '[]');
+			var h = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
 			h.push({ role: role, text: text });
-			sessionStorage.setItem(HISTORY_KEY, JSON.stringify(h));
+			localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
 		} catch (e) {}
 	}
 	function loadHistory() {
 		try {
-			var h = JSON.parse(sessionStorage.getItem(HISTORY_KEY) || '[]');
+			var h = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
 			if (!h.length) return false;
 			h.forEach(function (m) { addMessage(m.role, m.text, true); });
 			return true;
