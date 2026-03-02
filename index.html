@@ -284,6 +284,10 @@
 				bottom: 1rem;
 				right: 1rem;
 			}
+			#chat-window.open ~ #chat-toggle,
+			body.chat-open #chat-toggle {
+				display: none;
+			}
 		}
 	</style>
 </head>
@@ -375,11 +379,13 @@
 	toggle.addEventListener('click', () => {
 		isOpen = !isOpen;
 		window_.classList.toggle('open', isOpen);
+		document.body.classList.toggle('chat-open', isOpen);
 		if (isOpen) { textarea.focus(); scrollBottom(); }
 	});
 	closeBtn.addEventListener('click', () => {
 		isOpen = false;
 		window_.classList.remove('open');
+		document.body.classList.remove('chat-open');
 	});
 
 	// Send on Enter
